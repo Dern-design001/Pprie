@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pprie - Your Minimalist Workspace</title>
+    <title>Pprie - Your Secure Workspace</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -234,6 +238,22 @@
     </div>
     <div id="butterfly-container" style="position:fixed;inset:0;z-index:1;pointer-events:none;transition:opacity 0.7s ease;"></div>
 
+    <!-- Login Page -->
+    <section id="login-page" class="page-view fixed inset-0 flex flex-col items-center justify-center z-[60] text-center px-6">
+        <div class="max-w-sm w-full space-y-6">
+            <div class="w-16 h-16 bg-[#3A0353] dark:bg-[#804A8A] rounded-3xl flex items-center justify-center text-white text-3xl font-bold shadow-2xl mx-auto">P</div>
+            <h1 class="hero-title text-6xl font-bold tracking-tighter">Pprie.</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Your private, secure creative workspace</p>
+            <div class="bg-white/40 dark:bg-black/40 glass rounded-[2rem] p-8 border border-white/20 shadow-2xl space-y-5">
+                <button id="google-signin-btn" onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white dark:bg-white/10 rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 font-semibold text-gray-700 dark:text-white border border-black/5">
+                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.96 2.32-8.16 2.32-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    Continue with Google
+                </button>
+                <p class="text-[10px] text-gray-400 tracking-wide">🔒 Notes are private and secured to your account only</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Home Page -->
     <section id="home-page" class="page-view fixed inset-0 flex flex-col items-center justify-center z-50 text-center px-6">
         <div class="max-w-4xl space-y-8">
@@ -242,6 +262,11 @@
                 Vibrant Workspace Active
             </div>
             <h1 class="hero-title text-6xl md:text-9xl font-bold tracking-tighter leading-none mb-6">Pprie.</h1>
+            <div id="home-user-info" class="flex items-center gap-3 justify-center mb-2 opacity-0 transition-opacity duration-500">
+                <img id="home-avatar" class="w-8 h-8 rounded-full ring-2 ring-[#804A8A]/40" src="" alt="">
+                <span id="home-username" class="text-sm font-semibold text-gray-600 dark:text-gray-300"></span>
+                <button onclick="signOutUser()" class="text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors tracking-widest ml-2">Sign out</button>
+            </div>
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 pt-6">
                 <button onclick="navigateTo('workspace')" class="px-10 py-5 bg-[#3A0353] dark:bg-[#804A8A] hover:opacity-90 text-white rounded-3xl font-bold shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 text-xl group">
                     Workspace
@@ -285,6 +310,9 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
                     </button>
                     <input type="text" id="note-title" class="bg-transparent border-none text-xl font-bold focus:ring-0 w-full placeholder-gray-400" placeholder="A new topic...">
+                </div>
+                <div class="flex items-center gap-2 mr-2">
+                    <img id="ws-avatar" class="w-8 h-8 rounded-full ring-2 ring-[#804A8A]/30 hidden" src="" alt="">
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="triggerImageUpload()" class="btn-icon" title="Insert Image">
@@ -333,11 +361,29 @@
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-gray-900/90 glass text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[100] shadow-2xl"></div>
 
     <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyn8FKDvnrB4WnOXRCjFhz98Lstnp1mEI",
+            authDomain: "pprie-e767c.firebaseapp.com",
+            projectId: "pprie-e767c",
+            storageBucket: "pprie-e767c.firebasestorage.app",
+            messagingSenderId: "431613863081",
+            appId: "1:431613863081:web:78f6d6f6986d9c2fb1b5b8",
+            measurementId: "G-1S8E5243L6"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         let notes = [];
         let activeNoteId = null;
         let renamingNoteId = null;
         let saveTimeout;
+        let currentUser = null;
 
+        const loginPage = document.getElementById('login-page');
         const homePage = document.getElementById('home-page');
         const workspaceView = document.getElementById('workspace-view');
         const editor = document.getElementById('editor');
@@ -353,60 +399,137 @@
         const bgVisuals = document.querySelector('.bg-visuals');
         const butterflyContainer = document.getElementById('butterfly-container');
 
+        // Auth Logic
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => {
+                console.error(err);
+                showToast("Sign in failed");
+            });
+        }
+
+        function signOutUser() {
+            auth.signOut().then(() => {
+                navigateTo('login');
+            });
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                updateUserInfo(user);
+                navigateTo('home');
+                loadNotesFromFirestore();
+            } else {
+                currentUser = null;
+                navigateTo('login');
+                notes = [];
+                renderSidebar();
+            }
+        });
+
+        function updateUserInfo(user) {
+            const homeAvatar = document.getElementById('home-avatar');
+            const homeUsername = document.getElementById('home-username');
+            const wsAvatar = document.getElementById('ws-avatar');
+            const homeUserInfo = document.getElementById('home-user-info');
+
+            if (homeAvatar) homeAvatar.src = user.photoURL;
+            if (homeUsername) homeUsername.textContent = user.displayName;
+            if (wsAvatar) {
+                wsAvatar.src = user.photoURL;
+                wsAvatar.classList.remove('hidden');
+            }
+            if (homeUserInfo) homeUserInfo.style.opacity = '1';
+        }
+
         function navigateTo(page) {
-            if (page === 'home') {
-                homePage.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
-                workspaceView.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
-                // Restore animated background on home
+            // Hide all pages first
+            loginPage.classList.add('opacity-0', 'pointer-events-none');
+            homePage.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
+            workspaceView.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+
+            if (page === 'login') {
+                loginPage.classList.remove('opacity-0', 'pointer-events-none');
                 bgVisuals.style.opacity = '1';
                 butterflyContainer.style.opacity = '1';
-            } else {
-                homePage.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
+            } else if (page === 'home') {
+                homePage.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
+                bgVisuals.style.opacity = '1';
+                butterflyContainer.style.opacity = '1';
+            } else if (page === 'workspace') {
                 workspaceView.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
-                // Hide animated background in workspace — plain bg
                 bgVisuals.style.opacity = '0';
                 butterflyContainer.style.opacity = '0';
                 if (notes.length === 0) createNewNote();
             }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('pprie_v2_notes');
-            if (saved) {
-                notes = JSON.parse(saved);
-                if (notes.length > 0) {
-                    activeNoteId = notes[0].id;
+        function loadNotesFromFirestore() {
+            if (!currentUser) return;
+            db.collection('users').doc(currentUser.uid).collection('notes')
+                .orderBy('updatedAt', 'desc')
+                .onSnapshot(snapshot => {
+                    const newNotes = [];
+                    snapshot.forEach(doc => {
+                        newNotes.push({ id: doc.id, ...doc.data() });
+                    });
+                    notes = newNotes;
                     renderSidebar();
-                    loadActiveNote();
-                }
-            }
+                    if (activeNoteId) {
+                        const note = notes.find(n => n.id === activeNoteId);
+                        if (note && note.id === activeNoteId) {
+                            // Only update if current editor content is different to avoid cursor jumps
+                            if (noteTitleInput.value !== note.title) noteTitleInput.value = note.title;
+                        }
+                    } else if (notes.length > 0 && workspaceView.classList.contains('opacity-0') === false) {
+                        activeNoteId = notes[0].id;
+                        loadActiveNote();
+                    }
+                });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const theme = localStorage.getItem('pprie_theme');
             if (theme === 'dark' || (!theme && prefersDark)) applyTheme(true);
         });
 
-        function createNewNote() {
-            const note = { id: Date.now().toString(), title: '', content: '', updatedAt: Date.now() };
-            notes.unshift(note);
-            activeNoteId = note.id;
-            renderSidebar();
+        async function createNewNote() {
+            if (!currentUser) return;
+            const note = { 
+                title: '', 
+                content: '', 
+                updatedAt: Date.now(),
+                createdAt: Date.now()
+            };
+            const docRef = await db.collection('users').doc(currentUser.uid).collection('notes').add(note);
+            activeNoteId = docRef.id;
             loadActiveNote();
-            noteTitleInput.focus();
-            saveToStorage();
         }
 
         function loadActiveNote() {
             const note = notes.find(n => n.id === activeNoteId);
-            if (note) { noteTitleInput.value = note.title; editor.innerHTML = note.content; updateStats(); }
+            if (note) { 
+                noteTitleInput.value = note.title; 
+                editor.innerHTML = note.content; 
+                updateStats(); 
+            }
         }
 
-        function deleteNote(id, event) {
+        async function deleteNote(id, event) {
             event.stopPropagation();
-            if (notes.length === 1) { notes = []; createNewNote(); return; }
-            notes = notes.filter(n => n.id !== id);
-            if (activeNoteId === id) { activeNoteId = notes[0].id; loadActiveNote(); }
-            renderSidebar();
-            saveToStorage();
+            if (!currentUser) return;
+            await db.collection('users').doc(currentUser.uid).collection('notes').doc(id).delete();
+            if (activeNoteId === id) {
+                activeNoteId = notes.length > 0 ? notes[0].id : null;
+                if (activeNoteId) loadActiveNote();
+                else {
+                    noteTitleInput.value = '';
+                    editor.innerHTML = '';
+                    updateStats();
+                }
+            }
         }
 
         function openRenameModal(id, event) {
@@ -428,15 +551,15 @@
             renamingNoteId = null;
         }
 
-        function confirmRename() {
-            const note = notes.find(n => n.id === renamingNoteId);
-            if (note) {
-                note.title = renameInput.value.trim();
-                if (activeNoteId === renamingNoteId) noteTitleInput.value = note.title;
-                renderSidebar();
-                saveToStorage();
-                closeRenameModal();
-            }
+        async function confirmRename() {
+            if (!currentUser || !renamingNoteId) return;
+            const newTitle = renameInput.value.trim();
+            await db.collection('users').doc(currentUser.uid).collection('notes').doc(renamingNoteId).update({
+                title: newTitle,
+                updatedAt: Date.now()
+            });
+            if (activeNoteId === renamingNoteId) noteTitleInput.value = newTitle;
+            closeRenameModal();
         }
 
         renameInput.addEventListener('keypress', e => { if (e.key === 'Enter') confirmRename(); });
@@ -477,15 +600,18 @@
         function triggerAutoSave() {
             saveStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#F59E51] animate-pulse inline-block"></span> Saving`;
             clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                const note = notes.find(n => n.id === activeNoteId);
-                if (note) { note.content = editor.innerHTML; note.title = noteTitleInput.value; note.updatedAt = Date.now(); }
-                saveToStorage();
+            saveTimeout = setTimeout(async () => {
+                if (!currentUser || !activeNoteId) return;
+                await db.collection('users').doc(currentUser.uid).collection('notes').doc(activeNoteId).update({
+                    content: editor.innerHTML,
+                    title: noteTitleInput.value,
+                    updatedAt: Date.now()
+                });
                 saveStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span> Synced`;
             }, 800);
         }
 
-        function saveToStorage() { localStorage.setItem('pprie_v2_notes', JSON.stringify(notes)); }
+        function saveToStorage() { /* No longer used, using Firestore */ }
 
         function triggerImageUpload() { document.getElementById('image-input').click(); }
         function handleImageUpload(event) {
