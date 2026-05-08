@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pprie - Your Minimalist Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --bg-color: #fcfcfc;
+            --text-color: #1a1a1a;
+            --accent-color: #804A8A;
+        }
+
+        .dark {
+            --bg-color: #050206;
+            --text-color: #e5e7eb;
+            --accent-color: #F59E51;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease;
+            overflow: hidden;
+        }
+
+        .bg-visuals {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            transition: opacity 0.7s ease;
+        }
+
+        .blob {
+            position: absolute;
+            width: 75vw;
+            height: 75vw;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.45;
+            animation: float 28s infinite alternate ease-in-out;
+        }
+
+        .blob-1 { background: radial-gradient(circle, #3A0353 0%, transparent 75%); top: -15%; left: -10%; }
+        .blob-2 { background: radial-gradient(circle, #F59E51 0%, transparent 75%); bottom: -15%; right: -10%; animation-duration: 38s; animation-delay: -7s; }
+        .blob-3 { background: radial-gradient(circle, #804A8A 0%, transparent 75%); top: 35%; left: 25%; width: 50vw; height: 50vw; animation-duration: 32s; animation-delay: -12s; opacity: 0.3; }
+        .blob-4 { background: radial-gradient(circle, #F8D299 0%, transparent 75%); top: 10%; right: 20%; width: 40vw; height: 40vw; animation-duration: 45s; opacity: 0.25; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate(8%, 12%) scale(1.1) rotate(5deg); }
+            66% { transform: translate(-8%, 8%) scale(0.9) rotate(-5deg); }
+            100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+        }
+
+        .dark .blob { opacity: 0.22; }
+
+        .glass {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .page-view { transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+
+        #editor {
+            outline: none;
+            min-height: 100%;
+            line-height: 1.8;
+        }
+
+        #editor img {
+            width: 220px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin: 0.75rem 0.5rem 0.75rem 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+
+            display: inline-block;
+            vertical-align: middle;
+            cursor: zoom-in;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        #editor img:hover {
+            transform: scale(1.04);
+            box-shadow: 0 8px 28px rgba(58,3,83,0.22);
+        }
+
+        .note-item.active {
+            background-color: #3A0353;
+            color: white;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(1.03);
+        }
+
+        .dark .note-item.active { background-color: #804A8A; }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-icon:hover { background-color: rgba(156,163,175,0.4); }
+
+        [contenteditable]:empty:before {
+            content: attr(placeholder);
+            color: #9ca3af;
+            cursor: text;
+        }
+
+        .modal-overlay { background: rgba(10, 2, 15, 0.4); backdrop-filter: blur(10px); }
+
+        .hero-title {
+            background: linear-gradient(135deg, #3A0353, #804A8A, #F59E51);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dark .hero-title {
+            background: linear-gradient(135deg, #F8D299, #F59E51, #804A8A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* ── Butterfly Background ── */
+        .butterfly-wrap {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform;
+        }
+        .butterfly-svg {
+            display: block;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        .wing-left  { transform-origin: 100% 55%; }
+        .wing-right { transform-origin:   0% 55%; }
+
+        @keyframes flap-left {
+            0%,100% { transform: scaleX(1); }
+            50%      { transform: scaleX(0.08); }
+        }
+        @keyframes flap-right {
+            0%,100% { transform: scaleX(1); }
+            50%      { transform: scaleX(0.08); }
+        }
+        @keyframes body-bob {
+            0%,100% { transform: translateY(0); }
+            50%      { transform: translateY(2px); }
+        }
+
+        /* 8 distinct free-roaming flight paths */
+        @keyframes fly-1 {
+            0%   { transform: translate(8vw,  85vh) rotate(8deg); }
+            18%  { transform: translate(38vw, 18vh) rotate(-12deg); }
+            36%  { transform: translate(72vw, 55vh) rotate(6deg); }
+            55%  { transform: translate(88vw, 8vh)  rotate(-18deg); }
+            72%  { transform: translate(55vw, 70vh) rotate(10deg); }
+            90%  { transform: translate(22vw, 35vh) rotate(-6deg); }
+            100% { transform: translate(8vw,  85vh) rotate(8deg); }
+        }
+        @keyframes fly-2 {
+            0%   { transform: translate(92vw, 50vh) rotate(-8deg); }
+            22%  { transform: translate(58vw, 12vh) rotate(14deg); }
+            44%  { transform: translate(15vw, 60vh) rotate(-10deg); }
+            66%  { transform: translate(40vw, 88vh) rotate(16deg); }
+            88%  { transform: translate(78vw, 30vh) rotate(-5deg); }
+            100% { transform: translate(92vw, 50vh) rotate(-8deg); }
+        }
+        @keyframes fly-3 {
+            0%   { transform: translate(50vw, 5vh)  rotate(3deg); }
+            25%  { transform: translate(82vw, 72vh) rotate(-14deg); }
+            50%  { transform: translate(12vw, 42vh) rotate(11deg); }
+            75%  { transform: translate(65vw, 20vh) rotate(-8deg); }
+            100% { transform: translate(50vw, 5vh)  rotate(3deg); }
+        }
+        @keyframes fly-4 {
+            0%   { transform: translate(3vw,  30vh) rotate(-5deg); }
+            20%  { transform: translate(45vw, 75vh) rotate(18deg); }
+            42%  { transform: translate(90vw, 25vh) rotate(-12deg); }
+            64%  { transform: translate(60vw, 80vh) rotate(8deg); }
+            82%  { transform: translate(25vw, 10vh) rotate(-15deg); }
+            100% { transform: translate(3vw,  30vh) rotate(-5deg); }
+        }
+        @keyframes fly-5 {
+            0%   { transform: translate(75vw, 90vh) rotate(10deg); }
+            30%  { transform: translate(30vw, 22vh) rotate(-8deg); }
+            60%  { transform: translate(85vw, 48vh) rotate(12deg); }
+            80%  { transform: translate(10vw, 68vh) rotate(-16deg); }
+            100% { transform: translate(75vw, 90vh) rotate(10deg); }
+        }
+        @keyframes fly-6 {
+            0%   { transform: translate(20vw, 60vh) rotate(-6deg); }
+            35%  { transform: translate(70vw, 15vh) rotate(10deg); }
+            55%  { transform: translate(48vw, 82vh) rotate(-14deg); }
+            78%  { transform: translate(95vw, 40vh) rotate(7deg); }
+            100% { transform: translate(20vw, 60vh) rotate(-6deg); }
+        }
+        @keyframes fly-7 {
+            0%   { transform: translate(60vw, 35vh) rotate(5deg); }
+            28%  { transform: translate(5vw,  10vh) rotate(-18deg); }
+            52%  { transform: translate(35vw, 78vh) rotate(12deg); }
+            76%  { transform: translate(88vw, 62vh) rotate(-6deg); }
+            100% { transform: translate(60vw, 35vh) rotate(5deg); }
+        }
+        @keyframes fly-8 {
+            0%   { transform: translate(44vw, 55vh) rotate(-10deg); }
+            22%  { transform: translate(90vw, 85vh) rotate(8deg); }
+            48%  { transform: translate(18vw, 25vh) rotate(-12deg); }
+            70%  { transform: translate(55vw, 5vh)  rotate(15deg); }
+            100% { transform: translate(44vw, 55vh) rotate(-10deg); }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col relative">
+
+    <div class="bg-visuals">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+    </div>
+    <div id="butterfly-container" style="position:fixed;inset:0;z-index:1;pointer-events:none;transition:opacity 0.7s ease;"></div>
+
+    <!-- Home Page -->
+    <section id="home-page" class="page-view fixed inset-0 flex flex-col items-center justify-center z-50 text-center px-6">
+        <div class="max-w-4xl space-y-8">
+            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/30 dark:bg-white/5 border border-white/20 glass text-xs font-bold tracking-widest uppercase mb-4">
+                <span class="w-2 h-2 rounded-full bg-[#F59E51] animate-pulse"></span>
+                Vibrant Workspace Active
+            </div>
+            <h1 class="hero-title text-6xl md:text-9xl font-bold tracking-tighter leading-none mb-6">Pprie.</h1>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 pt-6">
+                <button onclick="navigateTo('workspace')" class="px-10 py-5 bg-[#3A0353] dark:bg-[#804A8A] hover:opacity-90 text-white rounded-3xl font-bold shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 text-xl group">
+                    Workspace
+                    <svg class="inline ml-2 transition-transform group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+                <button onclick="toggleTheme()" class="px-10 py-5 bg-white/20 dark:bg-white/5 glass border border-white/20 rounded-3xl font-semibold transition-all hover:bg-white/40 dark:hover:bg-white/10">
+                    Switch Light/Dark
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workspace View -->
+    <section id="workspace-view" class="page-view fixed inset-0 flex opacity-0 pointer-events-none translate-y-10">
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-black/5 dark:border-white/5 bg-gray-50/20 dark:bg-black/40 glass flex flex-col transition-all duration-300">
+            <div class="p-4 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+                <button onclick="navigateTo('home')" class="flex items-center gap-2 hover:opacity-70 transition-opacity">
+                    <div class="w-7 h-7 bg-[#3A0353] dark:bg-[#804A8A] rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">P</div>
+                    <span class="font-bold text-sm tracking-tight">Pprie</span>
+                </button>
+                <button onclick="createNewNote()" class="p-2 hover:bg-white/40 dark:hover:bg-white/10 rounded-xl text-[#804A8A] dark:text-[#F8D299] transition-colors" title="New Note">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                </button>
+            </div>
+            <div id="note-list" class="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar"></div>
+            <div class="p-4 border-t border-black/5 dark:border-white/5">
+                <button onclick="toggleTheme()" class="flex items-center gap-2 text-[10px] uppercase font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors tracking-widest">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    <span id="theme-text">Dark Mode</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <header class="flex items-center justify-between px-6 py-4 border-b border-black/5 dark:border-white/5 bg-white/20 dark:bg-black/10 glass z-10">
+                <div class="flex items-center gap-2 overflow-hidden">
+                    <button onclick="toggleSidebar()" class="md:hidden btn-icon mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+                    </button>
+                    <input type="text" id="note-title" class="bg-transparent border-none text-xl font-bold focus:ring-0 w-full placeholder-gray-400" placeholder="A new topic...">
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="triggerImageUpload()" class="btn-icon" title="Insert Image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    </button>
+                    <div class="w-px h-6 bg-black/10 dark:bg-white/10 mx-1 flex-shrink-0"></div>
+                    <button onclick="copyToClipboard()" class="btn-icon" title="Copy Content">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </button>
+                    <button onclick="downloadNote()" class="btn-icon" title="Download HTML">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    </button>
+                    <input type="file" id="image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto flex flex-col items-center p-6">
+                <div id="editor" contenteditable="true"
+                    class="w-full max-w-4xl p-10 md:p-16 text-lg focus:outline-none bg-white/50 dark:bg-black/30 glass rounded-[2.5rem] shadow-2xl shadow-black/5 min-h-full"
+                    placeholder="Capture your vision here..."></div>
+            </main>
+
+            <footer class="px-6 py-3 border-t border-black/5 dark:border-white/5 text-[10px] font-bold text-gray-400 flex justify-between items-center bg-white/20 dark:bg-black/10 glass tracking-widest uppercase">
+                <div class="flex gap-6">
+                    <span id="save-status" class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Syncing Active</span>
+                    <span id="char-count">0 characters</span>
+                </div>
+                <div class="opacity-40">Pprie Studio v2.1</div>
+            </footer>
+        </div>
+    </section>
+
+    <!-- Rename Modal -->
+    <div id="rename-modal" class="fixed inset-0 z-[100] flex items-center justify-center modal-overlay opacity-0 pointer-events-none transition-all duration-300">
+        <div id="modal-container" class="bg-white/80 dark:bg-[#1a0a20]/90 glass p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-white/30 scale-95 transition-transform duration-300">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.3em] text-[#804A8A] mb-8">Refine Title</h3>
+            <input type="text" id="rename-input" class="w-full p-5 bg-white/50 dark:bg-black/40 border border-black/5 dark:border-white/10 rounded-2xl focus:ring-4 focus:ring-[#804A8A]/20 outline-none mb-8 text-sm font-semibold" placeholder="Enter name...">
+            <div class="flex justify-end gap-4">
+                <button onclick="closeRenameModal()" class="px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors">Abort</button>
+                <button onclick="confirmRename()" class="px-8 py-3 text-xs font-black uppercase tracking-widest bg-[#3A0353] dark:bg-[#804A8A] text-white rounded-2xl shadow-xl hover:opacity-90 transition-all">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-gray-900/90 glass text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[100] shadow-2xl"></div>
+
+    <script>
+        let notes = [];
+        let activeNoteId = null;
+        let renamingNoteId = null;
+        let saveTimeout;
+
+        const homePage = document.getElementById('home-page');
+        const workspaceView = document.getElementById('workspace-view');
+        const editor = document.getElementById('editor');
+        const noteList = document.getElementById('note-list');
+        const noteTitleInput = document.getElementById('note-title');
+        const charCount = document.getElementById('char-count');
+        const saveStatus = document.getElementById('save-status');
+        const sidebar = document.getElementById('sidebar');
+        const renameModal = document.getElementById('rename-modal');
+        const modalContainer = document.getElementById('modal-container');
+        const renameInput = document.getElementById('rename-input');
+
+        const bgVisuals = document.querySelector('.bg-visuals');
+        const butterflyContainer = document.getElementById('butterfly-container');
+
+        function navigateTo(page) {
+            if (page === 'home') {
+                homePage.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
+                workspaceView.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+                // Restore animated background on home
+                bgVisuals.style.opacity = '1';
+                butterflyContainer.style.opacity = '1';
+            } else {
+                homePage.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
+                workspaceView.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+                // Hide animated background in workspace — plain bg
+                bgVisuals.style.opacity = '0';
+                butterflyContainer.style.opacity = '0';
+                if (notes.length === 0) createNewNote();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('pprie_v2_notes');
+            if (saved) {
+                notes = JSON.parse(saved);
+                if (notes.length > 0) {
+                    activeNoteId = notes[0].id;
+                    renderSidebar();
+                    loadActiveNote();
+                }
+            }
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = localStorage.getItem('pprie_theme');
+            if (theme === 'dark' || (!theme && prefersDark)) applyTheme(true);
+        });
+
+        function createNewNote() {
+            const note = { id: Date.now().toString(), title: '', content: '', updatedAt: Date.now() };
+            notes.unshift(note);
+            activeNoteId = note.id;
+            renderSidebar();
+            loadActiveNote();
+            noteTitleInput.focus();
+            saveToStorage();
+        }
+
+        function loadActiveNote() {
+            const note = notes.find(n => n.id === activeNoteId);
+            if (note) { noteTitleInput.value = note.title; editor.innerHTML = note.content; updateStats(); }
+        }
+
+        function deleteNote(id, event) {
+            event.stopPropagation();
+            if (notes.length === 1) { notes = []; createNewNote(); return; }
+            notes = notes.filter(n => n.id !== id);
+            if (activeNoteId === id) { activeNoteId = notes[0].id; loadActiveNote(); }
+            renderSidebar();
+            saveToStorage();
+        }
+
+        function openRenameModal(id, event) {
+            event.stopPropagation();
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+            renamingNoteId = id;
+            renameInput.value = note.title;
+            renameModal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContainer.classList.remove('scale-95');
+            modalContainer.classList.add('scale-100');
+            setTimeout(() => renameInput.focus(), 100);
+        }
+
+        function closeRenameModal() {
+            renameModal.classList.add('opacity-0', 'pointer-events-none');
+            modalContainer.classList.add('scale-95');
+            modalContainer.classList.remove('scale-100');
+            renamingNoteId = null;
+        }
+
+        function confirmRename() {
+            const note = notes.find(n => n.id === renamingNoteId);
+            if (note) {
+                note.title = renameInput.value.trim();
+                if (activeNoteId === renamingNoteId) noteTitleInput.value = note.title;
+                renderSidebar();
+                saveToStorage();
+                closeRenameModal();
+            }
+        }
+
+        renameInput.addEventListener('keypress', e => { if (e.key === 'Enter') confirmRename(); });
+
+        function renderSidebar() {
+            noteList.innerHTML = '';
+            notes.forEach(note => {
+                const div = document.createElement('div');
+                div.className = `note-item group flex items-center justify-between p-4 rounded-3xl cursor-pointer transition-all mb-2 ${note.id === activeNoteId ? 'active' : 'hover:bg-white/40 dark:hover:bg-white/5'}`;
+                div.onclick = () => { activeNoteId = note.id; renderSidebar(); loadActiveNote(); };
+                const title = note.title.trim() || 'Untitled Note';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden flex-1">
+                        <svg class="flex-shrink-0 opacity-40" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span class="text-xs truncate font-bold tracking-tight">${title}</span>
+                    </div>
+                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="openRenameModal('${note.id}', event)" class="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+                        <button onclick="deleteNote('${note.id}', event)" class="p-1 rounded-lg text-red-500 hover:bg-red-500/10"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                    </div>`;
+                noteList.appendChild(div);
+            });
+        }
+
+        editor.addEventListener('input', () => { updateStats(); triggerAutoSave(); });
+        noteTitleInput.addEventListener('input', () => {
+            const note = notes.find(n => n.id === activeNoteId);
+            if (note) {
+                note.title = noteTitleInput.value;
+                const el = document.querySelector('.note-item.active span');
+                if (el) el.textContent = note.title || 'Untitled Note';
+                triggerAutoSave();
+            }
+        });
+
+        function updateStats() { charCount.textContent = `${editor.innerText.length} characters`; }
+
+        function triggerAutoSave() {
+            saveStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-[#F59E51] animate-pulse inline-block"></span> Saving`;
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const note = notes.find(n => n.id === activeNoteId);
+                if (note) { note.content = editor.innerHTML; note.title = noteTitleInput.value; note.updatedAt = Date.now(); }
+                saveToStorage();
+                saveStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span> Synced`;
+            }, 800);
+        }
+
+        function saveToStorage() { localStorage.setItem('pprie_v2_notes', JSON.stringify(notes)); }
+
+        function triggerImageUpload() { document.getElementById('image-input').click(); }
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    editor.focus();
+                    document.execCommand('insertHTML', false, `<img src="${e.target.result}" alt="Content"><div><br></div>`);
+                    triggerAutoSave();
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
+        }
+
+        function toggleTheme() {
+            const isDark = !document.documentElement.classList.contains('dark');
+            applyTheme(isDark);
+            localStorage.setItem('pprie_theme', isDark ? 'dark' : 'light');
+        }
+
+        function applyTheme(isDark) {
+            const themeText = document.getElementById('theme-text');
+            const themeIcon = document.getElementById('theme-icon');
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                themeText.textContent = 'Light Mode';
+                themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeText.textContent = 'Dark Mode';
+                themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+            }
+        }
+
+        function toggleSidebar() { sidebar.classList.toggle('-ml-64'); }
+
+        function copyToClipboard() {
+            const range = document.createRange();
+            range.selectNode(editor);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            showToast('Note copied!');
+        }
+
+        function downloadNote() {
+            const title = noteTitleInput.value || 'Untitled Note';
+            const html = `<html><head><style>body{font-family:sans-serif;line-height:1.8;max-width:900px;margin:50px auto;padding:40px;background:#050206;color:#e5e7eb;}img{max-width:100%;border-radius:20px;box-shadow:0 30px 60px rgba(0,0,0,0.5);margin:30px 0;}h1{color:#F59E51;font-size:3rem;letter-spacing:-2px;}</style></head><body><h1>${title}</h1>${editor.innerHTML}</body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `pprie-${title.toLowerCase().replace(/\s+/g, '-')}.html`;
+            a.click(); URL.revokeObjectURL(url);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('opacity-0', 'pointer-events-none');
+            t.classList.add('opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0', 'pointer-events-none'); t.classList.remove('opacity-100'); }, 2500);
+        }
+
+        /* ── Butterfly Spawner ── */
+        (function spawnButterflies() {
+            const container = document.getElementById('butterfly-container');
+
+            // color palettes [upperWing, lowerWing, body, antennaeTip]
+            const palettes = [
+                ['#804A8A', '#3A0353', '#1a0030', '#F59E51'],
+                ['#F59E51', '#F8D299', '#3A0353', '#804A8A'],
+                ['#3A0353', '#804A8A', '#0d0020', '#F8D299'],
+                ['#F8D299', '#F59E51', '#2a0040', '#804A8A'],
+                ['#9B59B6', '#3A0353', '#1a0030', '#F59E51'],
+                ['#F59E51', '#804A8A', '#1a0030', '#F8D299'],
+            ];
+
+            const flyAnims   = ['fly-1','fly-2','fly-3','fly-4','fly-5','fly-6','fly-7','fly-8'];
+            const flapSpeeds = [0.28, 0.34, 0.22, 0.30, 0.26, 0.38, 0.32, 0.24, 0.20, 0.36];
+            const sizes      = [44, 52, 38, 60, 48, 56, 42, 50, 36, 64]; // px width
+            const durations  = [22, 30, 18, 26, 34, 20, 28, 24, 36, 16]; // flight loop s
+            const delays     = [0, -6, -12, -4, -9, -15, -3, -7, -11, -2];
+            const opacities  = [0.82, 0.70, 0.88, 0.65, 0.76, 0.90, 0.60, 0.84, 0.72, 0.78];
+
+            const COUNT = 10;
+
+            for (let i = 0; i < COUNT; i++) {
+                const p   = palettes[i % palettes.length];
+                const sz  = sizes[i];
+                const fs  = flapSpeeds[i];
+                const fly = flyAnims[i % flyAnims.length];
+                const dur = durations[i];
+                const del = delays[i];
+                const op  = opacities[i];
+
+                // SVG viewBox 100x80 butterfly
+                const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+                svg.setAttribute('viewBox','0 0 100 80');
+                svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
+                svg.style.cssText = `width:${sz}px;height:${sz*0.8}px;overflow:visible;display:block;`;
+                svg.classList.add('butterfly-svg');
+                svg.style.color = p[0];
+
+                svg.innerHTML = `
+                    <g class="wing-left" style="animation:flap-left ${fs}s ease-in-out infinite;">
+                        <path d="M50,38 C42,8 4,2 4,28 C4,48 28,56 50,46 Z" fill="${p[0]}" opacity="0.9"/>
+                        <path d="M50,46 C32,52 8,66 14,76 C20,84 42,72 50,56 Z" fill="${p[1]}" opacity="0.80"/>
+                        <path d="M50,38 C42,20 18,16 12,30 C8,40 28,50 50,44 Z" fill="${p[0]}" opacity="0.18"/>
+                    </g>
+                    <g class="wing-right" style="animation:flap-right ${fs}s ease-in-out infinite;">
+                        <path d="M50,38 C58,8 96,2 96,28 C96,48 72,56 50,46 Z" fill="${p[0]}" opacity="0.9"/>
+                        <path d="M50,46 C68,52 92,66 86,76 C80,84 58,72 50,56 Z" fill="${p[1]}" opacity="0.80"/>
+                        <path d="M50,38 C58,20 82,16 88,30 C92,40 72,50 50,44 Z" fill="${p[0]}" opacity="0.18"/>
+                    </g>
+                    <g style="animation:body-bob ${fs*2}s ease-in-out infinite;">
+                        <ellipse cx="50" cy="44" rx="2.5" ry="13" fill="${p[2]}" opacity="0.85"/>
+                        <circle  cx="50" cy="29" r="3.2"  fill="${p[2]}" opacity="0.85"/>
+                        <line x1="50" y1="26" x2="41" y2="13" stroke="${p[2]}" stroke-width="1.4" opacity="0.75"/>
+                        <line x1="50" y1="26" x2="59" y2="13" stroke="${p[2]}" stroke-width="1.4" opacity="0.75"/>
+                        <circle cx="41" cy="12" r="2.2" fill="${p[3]}"/>
+                        <circle cx="59" cy="12" r="2.2" fill="${p[3]}"/>
+                    </g>`;
+
+                const wrap = document.createElement('div');
+                wrap.classList.add('butterfly-wrap');
+                wrap.style.cssText = `opacity:${op}; animation:${fly} ${dur}s ease-in-out ${del}s infinite;`;
+                wrap.appendChild(svg);
+                container.appendChild(wrap);
+            }
+        })();
+    </script>
+</body>
+</html>
