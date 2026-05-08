@@ -237,9 +237,17 @@
         <div class="blob blob-4"></div>
     </div>
     <div id="butterfly-container" style="position:fixed;inset:0;z-index:1;pointer-events:none;transition:opacity 0.7s ease;"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 z-[200] flex items-center justify-center bg-[#fcfcfc] dark:bg-[#050206] transition-opacity duration-500">
+        <div class="flex flex-col items-center gap-6">
+            <div class="w-16 h-16 bg-[#3A0353] dark:bg-[#804A8A] rounded-3xl flex items-center justify-center text-white text-3xl font-bold shadow-2xl animate-pulse">P</div>
+            <div class="text-[10px] font-black uppercase tracking-[0.3em] text-[#804A8A] animate-bounce">Awakening Workspace...</div>
+        </div>
+    </div>
 
     <!-- Login Page -->
-    <section id="login-page" class="page-view fixed inset-0 flex flex-col items-center justify-center z-[60] text-center px-6">
+    <section id="login-page" class="page-view fixed inset-0 hidden flex-col items-center justify-center z-[60] text-center px-6 transition-all duration-500 w-full h-full">
         <div class="max-w-sm w-full space-y-6">
             <div class="w-16 h-16 bg-[#3A0353] dark:bg-[#804A8A] rounded-3xl flex items-center justify-center text-white text-3xl font-bold shadow-2xl mx-auto">P</div>
             <h1 class="hero-title text-6xl font-bold tracking-tighter">Pprie.</h1>
@@ -255,17 +263,17 @@
     </section>
 
     <!-- Home Page -->
-    <section id="home-page" class="page-view fixed inset-0 flex flex-col items-center justify-center z-50 text-center px-6">
+    <section id="home-page" class="page-view fixed inset-0 hidden flex-col items-center justify-center z-50 text-center px-6 opacity-0 transition-all duration-500 w-full h-full">
         <div class="max-w-4xl space-y-8">
             <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/30 dark:bg-white/5 border border-white/20 glass text-xs font-bold tracking-widest uppercase mb-4">
                 <span class="w-2 h-2 rounded-full bg-[#F59E51] animate-pulse"></span>
                 Vibrant Workspace Active
             </div>
             <h1 class="hero-title text-6xl md:text-9xl font-bold tracking-tighter leading-none mb-6">Pprie.</h1>
-            <div id="home-user-info" class="flex items-center gap-3 justify-center mb-2 opacity-0 transition-opacity duration-500">
-                <img id="home-avatar" class="w-8 h-8 rounded-full ring-2 ring-[#804A8A]/40" src="" alt="">
-                <span id="home-username" class="text-sm font-semibold text-gray-600 dark:text-gray-300"></span>
-                <button onclick="signOutUser()" class="text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors tracking-widest ml-2">Sign out</button>
+            <div id="home-user-info" class="flex items-center justify-center gap-3 mb-2 opacity-0 transition-opacity duration-500">
+                <span class="text-sm font-semibold text-gray-400">Welcome, <span id="home-username" class="text-gray-900 dark:text-white"></span></span>
+                <div class="w-px h-3 bg-black/10 dark:bg-white/10"></div>
+                <button onclick="signOutUser()" class="text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors tracking-widest">Sign out</button>
             </div>
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 pt-6">
                 <button onclick="navigateTo('workspace')" class="px-10 py-5 bg-[#3A0353] dark:bg-[#804A8A] hover:opacity-90 text-white rounded-3xl font-bold shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 text-xl group">
@@ -280,7 +288,7 @@
     </section>
 
     <!-- Workspace View -->
-    <section id="workspace-view" class="page-view fixed inset-0 flex opacity-0 pointer-events-none translate-y-10">
+    <section id="workspace-view" class="page-view fixed inset-0 hidden opacity-0 pointer-events-none translate-y-10 transition-all duration-500">
 
         <!-- Sidebar -->
         <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-black/5 dark:border-white/5 bg-gray-50/20 dark:bg-black/40 glass flex flex-col transition-all duration-300">
@@ -311,10 +319,11 @@
                     </button>
                     <input type="text" id="note-title" class="bg-transparent border-none text-xl font-bold focus:ring-0 w-full placeholder-gray-400" placeholder="A new topic...">
                 </div>
-                <div class="flex items-center gap-2 mr-2">
-                    <img id="ws-avatar" class="w-8 h-8 rounded-full ring-2 ring-[#804A8A]/30 hidden" src="" alt="">
-                </div>
+
                 <div class="flex items-center gap-2">
+                    <button onclick="toggleTheme()" class="btn-icon" title="Toggle Theme">
+                        <svg id="ws-theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg>
+                    </button>
                     <button onclick="triggerImageUpload()" class="btn-icon" title="Insert Image">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                     </button>
@@ -358,7 +367,22 @@
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-gray-900/90 glass text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[100] shadow-2xl"></div>
+    <!-- Username Modal -->
+    <div id="username-modal" class="fixed inset-0 z-[110] flex items-center justify-center hidden opacity-0 transition-all duration-300 backdrop-blur-md bg-black/20">
+        <div class="bg-white/90 dark:bg-[#1a0a20]/95 glass p-10 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-white/30 text-center space-y-8">
+            <div class="w-16 h-16 bg-[#3A0353] dark:bg-[#804A8A] rounded-3xl flex items-center justify-center text-white text-3xl font-bold shadow-2xl mx-auto">P</div>
+            <div>
+                <h3 class="text-xl font-bold tracking-tight mb-2">Welcome to Pprie.</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">What should we call you in your workspace?</p>
+            </div>
+            <input type="text" id="user-name-input" class="w-full p-5 bg-white/50 dark:bg-black/40 border border-black/5 dark:border-white/10 rounded-2xl focus:ring-4 focus:ring-[#804A8A]/20 outline-none text-center font-bold" placeholder="Your name...">
+            <button onclick="saveUsername()" class="w-full py-4 bg-[#3A0353] dark:bg-[#804A8A] text-white rounded-2xl font-bold shadow-lg hover:opacity-90 transition-all">
+                Let's Start
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-gray-900/90 glass text-white text-xs font-black uppercase tracking-[0.2em] rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[120] shadow-2xl"></div>
 
     <script>
         // Firebase Configuration
@@ -414,51 +438,121 @@
             });
         }
 
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
+            console.log("Auth state changed:", user ? user.uid : "Logged out");
+            const loadingScreen = document.getElementById('loading-screen');
+            
+            // Function to finish loading
+            const finishLoading = () => {
+                if (loadingScreen) {
+                    loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(() => loadingScreen.classList.add('hidden'), 500);
+                }
+            };
+            
+            // Hide all pages by default
+            [loginPage, homePage, workspaceView].forEach(p => {
+                p.classList.add('hidden');
+                p.classList.remove('flex');
+                p.classList.add('opacity-0', 'pointer-events-none');
+            });
+
             if (user) {
                 currentUser = user;
-                updateUserInfo(user);
-                navigateTo('home');
-                loadNotesFromFirestore();
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    if (userDoc.exists && userDoc.data().username) {
+                        updateUserInfo(userDoc.data().username);
+                        navigateTo('home');
+                        loadNotesFromFirestore();
+                        finishLoading();
+                    } else {
+                        showUsernameModal();
+                        finishLoading();
+                    }
+                } catch (err) {
+                    console.error("Firestore error:", err);
+                    showUsernameModal();
+                    finishLoading();
+                }
             } else {
                 currentUser = null;
                 navigateTo('login');
                 notes = [];
                 renderSidebar();
+                finishLoading();
             }
         });
 
-        function updateUserInfo(user) {
-            const homeAvatar = document.getElementById('home-avatar');
-            const homeUsername = document.getElementById('home-username');
-            const wsAvatar = document.getElementById('ws-avatar');
-            const homeUserInfo = document.getElementById('home-user-info');
+        function showUsernameModal() {
+            console.log("Showing username modal");
+            // Ensure backgrounds are visible
+            bgVisuals.style.opacity = '1';
+            butterflyContainer.style.opacity = '1';
+            
+            const modal = document.getElementById('username-modal');
+            if (!modal) return console.error("Modal not found!");
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                const input = document.getElementById('user-name-input');
+                if (input) input.focus();
+            }, 50);
+        }
 
-            if (homeAvatar) homeAvatar.src = user.photoURL;
-            if (homeUsername) homeUsername.textContent = user.displayName;
-            if (wsAvatar) {
-                wsAvatar.src = user.photoURL;
-                wsAvatar.classList.remove('hidden');
-            }
+        async function saveUsername() {
+            const name = document.getElementById('user-name-input').value.trim();
+            if (!name) return showToast("Please enter a name");
+            
+            await db.collection('users').doc(currentUser.uid).set({
+                username: name,
+                email: currentUser.email,
+                updatedAt: Date.now()
+            }, { merge: true });
+
+            const modal = document.getElementById('username-modal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                updateUserInfo(name);
+                navigateTo('home');
+                loadNotesFromFirestore();
+            }, 300);
+        }
+
+        function updateUserInfo(username) {
+            const homeUsername = document.getElementById('home-username');
+            const homeUserInfo = document.getElementById('home-user-info');
+            if (homeUsername) homeUsername.textContent = username;
             if (homeUserInfo) homeUserInfo.style.opacity = '1';
         }
 
         function navigateTo(page) {
-            // Hide all pages first
-            loginPage.classList.add('opacity-0', 'pointer-events-none');
-            homePage.classList.add('opacity-0', 'pointer-events-none', '-translate-y-12');
-            workspaceView.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10');
+            // Hide all pages
+            [loginPage, homePage, workspaceView].forEach(p => {
+                p.classList.add('hidden');
+                p.classList.remove('flex');
+                p.classList.add('opacity-0', 'pointer-events-none');
+            });
 
             if (page === 'login') {
-                loginPage.classList.remove('opacity-0', 'pointer-events-none');
+                loginPage.classList.remove('hidden');
+                loginPage.classList.add('flex');
+                setTimeout(() => loginPage.classList.remove('opacity-0', 'pointer-events-none'), 10);
                 bgVisuals.style.opacity = '1';
                 butterflyContainer.style.opacity = '1';
             } else if (page === 'home') {
-                homePage.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-12');
+                homePage.classList.remove('hidden');
+                homePage.classList.add('flex');
+                setTimeout(() => homePage.classList.remove('opacity-0', 'pointer-events-none'), 10);
                 bgVisuals.style.opacity = '1';
                 butterflyContainer.style.opacity = '1';
             } else if (page === 'workspace') {
-                workspaceView.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-10');
+                workspaceView.classList.remove('hidden');
+                workspaceView.classList.add('flex');
+                setTimeout(() => workspaceView.classList.remove('opacity-0', 'pointer-events-none'), 10);
                 bgVisuals.style.opacity = '0';
                 butterflyContainer.style.opacity = '0';
                 if (notes.length === 0) createNewNote();
@@ -636,15 +730,18 @@
 
         function applyTheme(isDark) {
             const themeText = document.getElementById('theme-text');
-            const themeIcon = document.getElementById('theme-icon');
+            const themeIcons = [document.getElementById('theme-icon'), document.getElementById('ws-theme-icon')];
+            const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+            const moonIcon = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+
             if (isDark) {
                 document.documentElement.classList.add('dark');
-                themeText.textContent = 'Light Mode';
-                themeIcon.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+                if (themeText) themeText.textContent = 'Light Mode';
+                themeIcons.forEach(icon => { if (icon) icon.innerHTML = sunIcon; });
             } else {
                 document.documentElement.classList.remove('dark');
-                themeText.textContent = 'Dark Mode';
-                themeIcon.innerHTML = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+                if (themeText) themeText.textContent = 'Dark Mode';
+                themeIcons.forEach(icon => { if (icon) icon.innerHTML = moonIcon; });
             }
         }
 
